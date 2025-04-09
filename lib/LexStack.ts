@@ -2,6 +2,14 @@ import * as cdk from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import * as lex from 'aws-cdk-lib/aws-lex'
 import * as iam from 'aws-cdk-lib/aws-iam'
+import { createGreetingIntent } from '../lex/intents/createGreetingIntent'
+import { createBuggerOrderIntent } from '../lex/intents/createBuggerOrderIntent'
+import { createFallbackIntent } from '../lex/intents/createFallbackIntent'
+import { createSizeSlotType } from '../lex/slot-types/createSizeSlotType'
+import {
+    createBuggerTypeSlotType,
+    SLOT_TYPE_VALUES,
+} from '../lex/slot-types/createBuggerTypeSlotType'
 
 export class AwsLexLearningStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,6 +25,9 @@ export class AwsLexLearningStack extends cdk.Stack {
             ],
         })
 
+        const buggerTypeSlotType = createBuggerTypeSlotType()
+        const sizeSlotType = createSizeSlotType()
+
         const bot = new lex.CfnBot(this, 'MyLexBot', {
             name: 'MyLexBot',
             roleArn: lexRuntimeRole.roleArn,
@@ -30,147 +41,14 @@ export class AwsLexLearningStack extends cdk.Stack {
                     localeId: 'en_US',
                     nluConfidenceThreshold: 0.4,
                     voiceSettings: { voiceId: 'Joanna', engine: 'neural' },
-                    slotTypes: [
-                        {
-                            name: 'BuggerSizeType',
-                            slotTypeValues: [
-                                {
-                                    sampleValue: {
-                                        value: 'Small',
-                                    },
-                                },
-                                {
-                                    sampleValue: {
-                                        value: 'Medium',
-                                    },
-                                },
-                                {
-                                    sampleValue: {
-                                        value: 'Large',
-                                    },
-                                },
-                            ],
-                            valueSelectionSetting: {
-                                resolutionStrategy: 'ORIGINAL_VALUE',
-                            },
-                        },
-                    ],
+                    slotTypes: [sizeSlotType, buggerTypeSlotType],
                     intents: [
-                        {
-                            name: 'Greeting',
-                            sampleUtterances: [
-                                {
-                                    utterance: 'Hello',
-                                },
-                                {
-                                    utterance: 'Hi',
-                                },
-                                {
-                                    utterance: 'Hi Bugger Order bot',
-                                },
-                            ],
-                            intentClosingSetting: {
-                                closingResponse: {
-                                    messageGroupsList: [
-                                        {
-                                            message: {
-                                                plainTextMessage: {
-                                                    value: 'Hello, welcome to the Bugger Order Bot!',
-                                                },
-                                            },
-                                            variations: [
-                                                {
-                                                    plainTextMessage: {
-                                                        value: "Hi there! You've reached the Bugger Order Bot.",
-                                                    },
-                                                },
-                                                {
-                                                    plainTextMessage: {
-                                                        value: "Welcome! I'm the Bugger Order Bot, here to help you.",
-                                                    },
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                        {
-                            name: 'BuggerOrder',
-                            sampleUtterances: [
-                                {
-                                    utterance: "I'd like to order a burger",
-                                },
-                                {
-                                    utterance: 'Can I get a burger',
-                                },
-                                {
-                                    utterance: 'Let me have a burger',
-                                },
-                            ],
-                            initialResponseSetting: {
-                                initialResponse: {
-                                    messageGroupsList: [
-                                        {
-                                            message: {
-                                                plainTextMessage: {
-                                                    value: 'Sure! I can help you with that.',
-                                                },
-                                            },
-                                        },
-                                    ],
-                                },
-                            },
-
-                            slotPriorities: [
-                                {
-                                    slotName: 'BuggerSizeSlot',
-                                    priority: 1,
-                                },
-                            ],
-
-                            slots: [
-                                {
-                                    name: 'BuggerSizeSlot',
-                                    slotTypeName: 'BuggerSizeType',
-                                    valueElicitationSetting: {
-                                        slotConstraint: 'Required',
-                                        promptSpecification: {
-                                            maxRetries: 2,
-                                            messageGroupsList: [
-                                                {
-                                                    message: {
-                                                        plainTextMessage: {
-                                                            value: 'What size of burger would you like? (Small, Medium, Large)',
-                                                        },
-                                                    },
-                                                },
-                                            ],
-                                        },
-                                    },
-                                },
-                            ],
-
-                            intentClosingSetting: {
-                                closingResponse: {
-                                    messageGroupsList: [
-                                        {
-                                            message: {
-                                                plainTextMessage: {
-                                                    value: 'Ok, you have ordered a {BuggerSizeSlot} burger. Where would you like to order from? (Best Bugger, Bugger Palace or Flamming Bugger)',
-                                                },
-                                            },
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                        {
-                            name: 'FallbackIntent',
-                            description:
-                                'Default intent when no other intent matches',
-                            parentIntentSignature: 'AMAZON.FallbackIntent',
-                        },
+                        createGreetingIntent(),
+                        createBuggerOrderIntent({
+                            slotTypeName: sizeSlotType.name,
+                            sizeTypes: SLOT_TYPE_VALUES,
+                        }),
+                        createFallbackIntent(),
                     ],
                 },
             ],
