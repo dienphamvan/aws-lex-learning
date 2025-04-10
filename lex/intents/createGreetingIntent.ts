@@ -10,7 +10,7 @@ export const createGreetingIntent = (): CfnBot.IntentProperty => ({
             utterance: 'Hi',
         },
         {
-            utterance: 'Hi Bugger Order bot',
+            utterance: 'Hi Burger Order bot',
         },
     ],
     intentClosingSetting: {
@@ -19,18 +19,18 @@ export const createGreetingIntent = (): CfnBot.IntentProperty => ({
                 {
                     message: {
                         plainTextMessage: {
-                            value: 'Hello, welcome to the Bugger Order Bot!',
+                            value: 'Hello, welcome to the Burger Order Bot! Would you like to order a burger or a drink?',
                         },
                     },
                     variations: [
                         {
                             plainTextMessage: {
-                                value: "Hi there! You've reached the Bugger Order Bot.",
+                                value: "Hi there! You've reached the Burger Order Bot. Would you like to order a burger or a drink?",
                             },
                         },
                         {
                             plainTextMessage: {
-                                value: "Welcome! I'm the Bugger Order Bot, here to help you.",
+                                value: "Welcome! I'm the Burger Order Bot, here to help you. Would you like to order a burger or a drink?",
                             },
                         },
                     ],

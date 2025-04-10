@@ -1,11 +1,11 @@
 import { CfnBot } from 'aws-cdk-lib/aws-lex'
 
-export const SIZE_TYPE = ['Small', 'Medium', 'Large']
+export const BEST_BURGER_TYPE = ['Best Plain', 'Best Cheese', 'Best Bacon']
 
-export const createSizeSlotType = (): CfnBot.SlotTypeProperty => {
+export const createBestBurgerType = (): CfnBot.SlotTypeProperty => {
     return {
-        name: 'BurgerSizeType',
-        slotTypeValues: SIZE_TYPE.map((value) => ({
+        name: 'BestBurgerType',
+        slotTypeValues: BEST_BURGER_TYPE.map((value) => ({
             sampleValue: {
                 value,
             },

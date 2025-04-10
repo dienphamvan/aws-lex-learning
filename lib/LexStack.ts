@@ -1,15 +1,33 @@
 import * as cdk from 'aws-cdk-lib'
-import { Construct } from 'constructs'
-import * as lex from 'aws-cdk-lib/aws-lex'
 import * as iam from 'aws-cdk-lib/aws-iam'
-import { createGreetingIntent } from '../lex/intents/createGreetingIntent'
-import { createBuggerOrderIntent } from '../lex/intents/createBuggerOrderIntent'
+import * as lex from 'aws-cdk-lib/aws-lex'
+import { Construct } from 'constructs'
+import { createBestBurgerIntent } from '../lex/intents/createBestBurgerIntent'
+import { createBurgerOrderIntent } from '../lex/intents/createBurgerOrderIntent'
 import { createFallbackIntent } from '../lex/intents/createFallbackIntent'
-import { createSizeSlotType } from '../lex/slot-types/createSizeSlotType'
+import { createGreetingIntent } from '../lex/intents/createGreetingIntent'
 import {
-    createBuggerTypeSlotType,
-    SLOT_TYPE_VALUES,
-} from '../lex/slot-types/createBuggerTypeSlotType'
+    BEST_BURGER_TYPE,
+    createBestBurgerType,
+} from '../lex/slot-types/createBestBurgerType'
+import {
+    createSizeSlotType,
+    SIZE_TYPE as SIZE_SLOT_TYPE_VALUES,
+} from '../lex/slot-types/createSizeSlotType'
+import {
+    createPalaceBurgerType,
+    PALACE_BURGER_TYPE,
+} from '../lex/slot-types/createPalaceBurgerType'
+import {
+    createYumBurgerType,
+    YUM_BURGER_TYPE,
+} from '../lex/slot-types/createYumBurgerType'
+import { createPalaceBurgerIntent } from '../lex/intents/createPalaceBurgerIntent'
+import { createYumBurgerIntent } from '../lex/intents/createYumBurgerIntent'
+import {
+    createFranchiseType,
+    FRANCHISE_TYPE,
+} from '../lex/slot-types/createFranchiseType'
 
 export class AwsLexLearningStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -25,8 +43,11 @@ export class AwsLexLearningStack extends cdk.Stack {
             ],
         })
 
-        const buggerTypeSlotType = createBuggerTypeSlotType()
         const sizeSlotType = createSizeSlotType()
+        const bestBurgerType = createBestBurgerType()
+        const palaceBurgerType = createPalaceBurgerType()
+        const yumBurgerType = createYumBurgerType()
+        const franchiseType = createFranchiseType()
 
         const bot = new lex.CfnBot(this, 'MyLexBot', {
             name: 'MyLexBot',
@@ -41,12 +62,31 @@ export class AwsLexLearningStack extends cdk.Stack {
                     localeId: 'en_US',
                     nluConfidenceThreshold: 0.4,
                     voiceSettings: { voiceId: 'Joanna', engine: 'neural' },
-                    slotTypes: [sizeSlotType, buggerTypeSlotType],
+                    slotTypes: [
+                        sizeSlotType,
+                        bestBurgerType,
+                        palaceBurgerType,
+                        yumBurgerType,
+                        franchiseType,
+                    ],
                     intents: [
                         createGreetingIntent(),
-                        createBuggerOrderIntent({
+                        createBurgerOrderIntent({
                             slotTypeName: sizeSlotType.name,
-                            sizeTypes: SLOT_TYPE_VALUES,
+                            sizeTypes: SIZE_SLOT_TYPE_VALUES,
+                            franchiseTypes: FRANCHISE_TYPE,
+                        }),
+                        createBestBurgerIntent({
+                            slotTypeName: bestBurgerType.name,
+                            typesValue: BEST_BURGER_TYPE,
+                        }),
+                        createPalaceBurgerIntent({
+                            slotTypeName: palaceBurgerType.name,
+                            typesValue: PALACE_BURGER_TYPE,
+                        }),
+                        createYumBurgerIntent({
+                            slotTypeName: yumBurgerType.name,
+                            typesValue: YUM_BURGER_TYPE,
                         }),
                         createFallbackIntent(),
                     ],

@@ -1,14 +1,18 @@
 import { CfnBot } from 'aws-cdk-lib/aws-lex'
 
-export const createBuggerOrderIntent = ({
+export const BURGER_SIZE_SLOT = 'BurgerSizeSlot'
+
+export const createBurgerOrderIntent = ({
     slotTypeName,
     sizeTypes,
+    franchiseTypes,
 }: {
     slotTypeName: string
     sizeTypes: string[]
+    franchiseTypes: string[]
 }): CfnBot.IntentProperty => {
     return {
-        name: 'BuggerOrder',
+        name: 'BurgerOrder',
         sampleUtterances: [
             {
                 utterance: "I'd like to order a burger",
@@ -18,6 +22,13 @@ export const createBuggerOrderIntent = ({
             },
             {
                 utterance: 'Let me have a burger',
+            },
+            {
+                utterance: 'burger',
+            },
+
+            {
+                utterance: 'Burger',
             },
         ],
         initialResponseSetting: {
@@ -36,14 +47,14 @@ export const createBuggerOrderIntent = ({
 
         slotPriorities: [
             {
-                slotName: 'BuggerSizeSlot',
+                slotName: BURGER_SIZE_SLOT,
                 priority: 1,
             },
         ],
 
         slots: [
             {
-                name: 'BuggerSizeSlot',
+                name: BURGER_SIZE_SLOT,
                 slotTypeName,
                 valueElicitationSetting: {
                     slotConstraint: 'Required',
@@ -71,7 +82,9 @@ export const createBuggerOrderIntent = ({
                     {
                         message: {
                             plainTextMessage: {
-                                value: 'Ok, you have ordered a {BuggerSizeSlot} burger. Where would you like to order from? (Best Bugger, Bugger Palace or Flamming Bugger)',
+                                value: `Ok, you have ordered a ${BURGER_SIZE_SLOT} burger. Where would you like to order from? (${franchiseTypes.join(
+                                    ', '
+                                )})`,
                             },
                         },
                     },
