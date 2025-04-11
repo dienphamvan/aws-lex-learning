@@ -28,29 +28,47 @@ import {
     createFranchiseType,
     FRANCHISE_TYPE,
 } from '../lex/slot-types/createFranchiseType'
+import {
+    createKindSlotType,
+    KIND_TYPE,
+} from '../lex/slot-types/createKindSlotType'
 
-export class AwsLexLearningStack extends cdk.Stack {
+export class LexStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props)
 
         const lexRuntimeRole = new iam.Role(this, 'LexRuntimeRole', {
             assumedBy: new iam.ServicePrincipal('lexv2.amazonaws.com'),
             description: 'LexV2Bots Permission Runtime Role',
-            managedPolicies: [
-                iam.ManagedPolicy.fromAwsManagedPolicyName(
-                    'AmazonLexFullAccess'
-                ),
-            ],
+            inlinePolicies: {
+                lexv2BotPolicy: new iam.PolicyDocument({
+                    statements: [
+                        new iam.PolicyStatement({
+                            effect: iam.Effect.ALLOW,
+                            actions: ['polly:SynthesizeSpeech'],
+                            resources: ['*'],
+                        }),
+                    ],
+                }),
+            },
         })
 
-        const sizeSlotType = createSizeSlotType()
+        new cdk.CfnOutput(this, 'LexRuntimeRoleArn', {
+            value: lexRuntimeRole.roleArn,
+            description: 'The ARN of the Lex runtime role',
+        })
+
         const bestBurgerType = createBestBurgerType()
         const palaceBurgerType = createPalaceBurgerType()
         const yumBurgerType = createYumBurgerType()
+        const sizeSlotType = createSizeSlotType()
         const franchiseType = createFranchiseType()
+        const kindType = createKindSlotType()
 
         const bot = new lex.CfnBot(this, 'MyLexBot', {
             name: 'MyLexBot',
+            // roleArn:
+            //     'arn:aws:iam::271225931225:role/aws-service-role/lexv2.amazonaws.com/AWSServiceRoleForLexV2Bots_AH6UVQSF728',
             roleArn: lexRuntimeRole.roleArn,
             dataPrivacy: {
                 ChildDirected: false,
@@ -64,18 +82,26 @@ export class AwsLexLearningStack extends cdk.Stack {
                     voiceSettings: { voiceId: 'Joanna', engine: 'neural' },
                     slotTypes: [
                         sizeSlotType,
+                        franchiseType,
+                        kindType,
+                        /*
                         bestBurgerType,
                         palaceBurgerType,
                         yumBurgerType,
-                        franchiseType,
+                        */
                     ],
                     intents: [
-                        createGreetingIntent(),
                         createBurgerOrderIntent({
-                            slotTypeName: sizeSlotType.name,
+                            sizeSlotTypeName: sizeSlotType.name,
                             sizeTypes: SIZE_SLOT_TYPE_VALUES,
                             franchiseTypes: FRANCHISE_TYPE,
+                            franchiseSlotTypeName: franchiseType.name,
+                            kindSlotTypeName: kindType.name,
+                            kindTypes: KIND_TYPE,
                         }),
+                        createFallbackIntent(),
+                        /*
+                        createGreetingIntent(),
                         createBestBurgerIntent({
                             slotTypeName: bestBurgerType.name,
                             typesValue: BEST_BURGER_TYPE,
@@ -88,7 +114,7 @@ export class AwsLexLearningStack extends cdk.Stack {
                             slotTypeName: yumBurgerType.name,
                             typesValue: YUM_BURGER_TYPE,
                         }),
-                        createFallbackIntent(),
+                        */
                     ],
                 },
             ],
