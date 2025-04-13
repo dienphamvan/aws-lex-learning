@@ -5,17 +5,10 @@ import * as lambda from 'aws-cdk-lib/aws-lambda'
 import * as path from 'path'
 
 export class LambdaStack extends cdk.Stack {
+    lambdaArn: string
+
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props)
-
-        const lambdaRole = new iam.Role(this, 'LambdaExecutionRole', {
-            assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-            managedPolicies: [
-                iam.ManagedPolicy.fromAwsManagedPolicyName(
-                    'AWSLambda_FullAccess'
-                ),
-            ],
-        })
 
         const lambdaFunction = new lambda.Function(this, 'MyLambdaFunction', {
             code: lambda.Code.fromAsset(
@@ -23,7 +16,23 @@ export class LambdaStack extends cdk.Stack {
             ),
             handler: 'index.handler',
             runtime: lambda.Runtime.NODEJS_18_X,
-            role: lambdaRole,
         })
+
+        lambdaFunction.addPermission('LexInvokePermission', {
+            principal: new iam.ServicePrincipal('lexv2.amazonaws.com'),
+            action: 'lambda:InvokeFunction',
+            sourceAccount: cdk.Stack.of(this).account,
+            sourceArn: cdk.Arn.format(
+                {
+                    service: 'lex',
+                    account: this.account,
+                    region: this.region,
+                    resource: 'bot-alias/*',
+                },
+                this
+            ),
+        })
+
+        this.lambdaArn = lambdaFunction.functionArn
     }
 }

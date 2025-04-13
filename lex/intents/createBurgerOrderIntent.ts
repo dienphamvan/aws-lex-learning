@@ -157,8 +157,8 @@ export const createBurgerOrderIntent = ({
             },
         },
 
-        // dialogCodeHook: {
-        //     enabled: true,
-        // },
+        dialogCodeHook: {
+            enabled: true,
+        },
     }
 }
