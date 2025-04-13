@@ -1,8 +1,10 @@
 import { CfnBot } from 'aws-cdk-lib/aws-lex'
 
-export const BURGER_SIZE_SLOT = 'BurgerSizeSlot'
-export const BURGER_FRANCHISE_SLOT = 'BurgerFranchiseSlot'
-export const BURGER_KIND_SLOT = 'BurgerKindSlot'
+enum BurgerSlot {
+    BURGER_SIZE_SLOT = 'BurgerSizeSlot',
+    BURGER_FRANCHISE_SLOT = 'BurgerFranchiseSlot',
+    BURGER_KIND_SLOT = 'BurgerKindSlot',
+}
 
 export const createBurgerOrderIntent = ({
     sizeSlotTypeName,
@@ -26,34 +28,34 @@ export const createBurgerOrderIntent = ({
                 utterance: 'burger',
             },
             {
-                utterance: `{${BURGER_SIZE_SLOT}} burger`,
+                utterance: `{${BurgerSlot.BURGER_SIZE_SLOT}} burger`,
             },
             {
-                utterance: `{${BURGER_SIZE_SLOT}} {${BURGER_KIND_SLOT}} burger`,
+                utterance: `{${BurgerSlot.BURGER_SIZE_SLOT}} {${BurgerSlot.BURGER_KIND_SLOT}} burger`,
             },
             {
-                utterance: `{${BURGER_SIZE_SLOT}} {${BURGER_KIND_SLOT}} burger from {${BURGER_FRANCHISE_SLOT}}`,
+                utterance: `{${BurgerSlot.BURGER_SIZE_SLOT}} {${BurgerSlot.BURGER_KIND_SLOT}} burger from {${BurgerSlot.BURGER_FRANCHISE_SLOT}}`,
             },
         ],
 
         slotPriorities: [
             {
-                slotName: BURGER_SIZE_SLOT,
+                slotName: BurgerSlot.BURGER_SIZE_SLOT,
                 priority: 1,
             },
             {
-                slotName: BURGER_KIND_SLOT,
+                slotName: BurgerSlot.BURGER_KIND_SLOT,
                 priority: 2,
             },
             {
-                slotName: BURGER_FRANCHISE_SLOT,
+                slotName: BurgerSlot.BURGER_FRANCHISE_SLOT,
                 priority: 3,
             },
         ],
 
         slots: [
             {
-                name: BURGER_SIZE_SLOT,
+                name: BurgerSlot.BURGER_SIZE_SLOT,
                 slotTypeName: sizeSlotTypeName,
                 valueElicitationSetting: {
                     slotConstraint: 'Required',
@@ -74,7 +76,7 @@ export const createBurgerOrderIntent = ({
                 },
             },
             {
-                name: BURGER_KIND_SLOT,
+                name: BurgerSlot.BURGER_KIND_SLOT,
                 slotTypeName: kindSlotTypeName,
                 valueElicitationSetting: {
                     slotConstraint: 'Required',
@@ -95,7 +97,7 @@ export const createBurgerOrderIntent = ({
                 },
             },
             {
-                name: BURGER_FRANCHISE_SLOT,
+                name: BurgerSlot.BURGER_FRANCHISE_SLOT,
                 slotTypeName: franchiseSlotTypeName,
                 valueElicitationSetting: {
                     slotConstraint: 'Required',
@@ -124,7 +126,7 @@ export const createBurgerOrderIntent = ({
                     {
                         message: {
                             plainTextMessage: {
-                                value: `Would you like to order a {${BURGER_KIND_SLOT}} {${BURGER_SIZE_SLOT}} burger from {${BURGER_FRANCHISE_SLOT}}?`,
+                                value: `Would you like to order a {${BurgerSlot.BURGER_KIND_SLOT}} {${BurgerSlot.BURGER_SIZE_SLOT}} burger from {${BurgerSlot.BURGER_FRANCHISE_SLOT}}?`,
                             },
                         },
                     },
@@ -149,7 +151,7 @@ export const createBurgerOrderIntent = ({
                     {
                         message: {
                             plainTextMessage: {
-                                value: `Ok, you have ordered a {${BURGER_KIND_SLOT}} {${BURGER_SIZE_SLOT}} burger from {${BURGER_FRANCHISE_SLOT}}.`,
+                                value: `Ok, you have ordered a {${BurgerSlot.BURGER_KIND_SLOT}} {${BurgerSlot.BURGER_SIZE_SLOT}} burger from {${BurgerSlot.BURGER_FRANCHISE_SLOT}}.`,
                             },
                         },
                     },
