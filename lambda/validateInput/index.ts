@@ -1,4 +1,12 @@
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb'
 import { LexV2Event, LexV2Result, LexV2Slot } from 'aws-lambda'
+
+const client = new DynamoDBClient({})
+
+const dynamo = DynamoDBDocumentClient.from(client)
+
+const TABLE_NAME = process.env.TABLE_NAME
 
 enum BurgerSlot {
     BURGER_SIZE_SLOT = 'BurgerSizeSlot',
@@ -6,25 +14,62 @@ enum BurgerSlot {
     BURGER_KIND_SLOT = 'BurgerKindSlot',
 }
 
-const FRANCHISE_TYPE = ['Best Burger', 'Palace Burger']
-
 export const handler = async (event: LexV2Event): Promise<LexV2Result> => {
-    console.log('Received event:', JSON.stringify(event))
-    const slots = event.sessionState.intent.slots as Record<
-        BurgerSlot,
-        LexV2Slot | null
-    >
+    try {
+        console.log('Received event:', JSON.stringify(event))
+        const slots = event.sessionState.intent.slots as Record<
+            BurgerSlot,
+            LexV2Slot | null
+        >
 
-    const nextElicitSlot = event?.proposedNextState?.dialogAction?.slotToElicit
+        const nextElicitSlot =
+            event?.proposedNextState?.dialogAction?.slotToElicit
 
-    if (nextElicitSlot === BurgerSlot.BURGER_FRANCHISE_SLOT) {
-        // TODO: Check if there is requested burger on the menu
+        if (
+            nextElicitSlot === BurgerSlot.BURGER_FRANCHISE_SLOT &&
+            slots.BurgerKindSlot?.value?.interpretedValue
+        ) {
+            const data = await dynamo.send(
+                new ScanCommand({
+                    TableName: TABLE_NAME,
+                    FilterExpression: 'contains(burgerKind, :kind)',
+                    ExpressionAttributeValues: {
+                        ':kind': slots.BurgerKindSlot?.value?.interpretedValue,
+                    },
+                })
+            )
+
+            const franchises = data.Items?.map(
+                (item) => item.franchiseName
+            ) as string[]
+
+            return {
+                sessionState: {
+                    dialogAction: {
+                        type: 'ElicitSlot',
+                        slotToElicit: BurgerSlot.BURGER_FRANCHISE_SLOT,
+                    },
+                    intent: {
+                        name: event.sessionState.intent.name,
+                        slots: event.sessionState.intent.slots,
+                        state: 'InProgress',
+                    },
+                },
+                messages: [
+                    {
+                        contentType: 'PlainText',
+                        content: `What franchise of burger would you like? (${franchises.join(
+                            ', '
+                        )})`,
+                    },
+                ],
+            }
+        }
 
         return {
             sessionState: {
                 dialogAction: {
-                    type: 'ElicitSlot',
-                    slotToElicit: BurgerSlot.BURGER_FRANCHISE_SLOT,
+                    type: 'Delegate',
                 },
                 intent: {
                     name: event.sessionState.intent.name,
@@ -32,27 +77,25 @@ export const handler = async (event: LexV2Event): Promise<LexV2Result> => {
                     state: 'InProgress',
                 },
             },
+        }
+    } catch (error) {
+        console.error('Error processing event:', JSON.stringify(error))
+        return {
+            sessionState: {
+                dialogAction: {
+                    type: 'ElicitIntent',
+                },
+                intent: {
+                    name: event.sessionState.intent.name,
+                    state: 'Failed',
+                },
+            },
             messages: [
                 {
                     contentType: 'PlainText',
-                    content: `What franchise of burger would you like? (${FRANCHISE_TYPE.join(
-                        ', '
-                    )})`,
+                    content: 'Sorry, something went wrong. Please try again.',
                 },
             ],
         }
-    }
-
-    return {
-        sessionState: {
-            dialogAction: {
-                type: 'Delegate',
-            },
-            intent: {
-                name: event.sessionState.intent.name,
-                slots: event.sessionState.intent.slots,
-                state: 'InProgress',
-            },
-        },
     }
 }

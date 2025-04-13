@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import * as lex from 'aws-cdk-lib/aws-lex'
+import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
 import { createBurgerOrderIntent } from '../lex/intents/createBurgerOrderIntent'
 import { createFallbackIntent } from '../lex/intents/createFallbackIntent'
@@ -18,7 +19,7 @@ import {
 } from '../lex/slot-types/createSizeSlotType'
 
 type LexStackProps = cdk.StackProps & {
-    readonly lambdaArn: string
+    readonly lambdaFunction: lambda.Function
 }
 export class LexStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: LexStackProps) {
@@ -65,7 +66,7 @@ export class LexStack extends cdk.Stack {
                             enabled: true,
                             codeHookSpecification: {
                                 lambdaCodeHook: {
-                                    lambdaArn: props.lambdaArn,
+                                    lambdaArn: props.lambdaFunction.functionArn,
                                     codeHookInterfaceVersion: '1.0',
                                 },
                             },
