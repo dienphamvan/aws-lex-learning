@@ -9,7 +9,8 @@
         "watch": "tsc -w",
         "test": "jest",
         "cdk": "cdk",
-        "deploy": "npm run build && cdk deploy --all --require-approval never"
+        "deploy": "npm run build && cdk deploy --all --require-approval never",
+        "seed": "npx ts-node script/index.ts"
     },
     "devDependencies": {
         "@types/aws-lambda": "^8.10.149",
@@ -23,8 +24,10 @@
     },
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.788.0",
+        "@aws-sdk/client-s3": "^3.787.0",
         "@aws-sdk/lib-dynamodb": "^3.788.0",
         "aws-cdk-lib": "2.186.0",
+        "aws-sdk": "^2.1692.0",
         "constructs": "^10.0.0",
         "dotenv": "^16.5.0"
     }

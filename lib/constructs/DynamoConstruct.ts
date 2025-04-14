@@ -1,13 +1,12 @@
-import * as cdk from 'aws-cdk-lib'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import { Construct } from 'constructs'
 
-export class DynamoStack extends cdk.Stack {
+export class DynamoConstruct extends Construct {
     public readonly orderTable: dynamodb.Table
     public readonly menuTable: dynamodb.Table
 
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-        super(scope, id, props)
+    constructor(scope: Construct, id: string) {
+        super(scope, id)
 
         this.menuTable = new dynamodb.Table(this, 'Menu', {
             partitionKey: {

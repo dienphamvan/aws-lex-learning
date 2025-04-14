@@ -1,29 +1,32 @@
 import * as cdk from 'aws-cdk-lib'
 import * as iam from 'aws-cdk-lib/aws-iam'
-import * as lex from 'aws-cdk-lib/aws-lex'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
+import * as lex from 'aws-cdk-lib/aws-lex'
 import { Construct } from 'constructs'
-import { createBurgerOrderIntent } from '../lex/intents/createBurgerOrderIntent'
-import { createFallbackIntent } from '../lex/intents/createFallbackIntent'
+import { createBurgerOrderIntent } from '../../lex/intents/createBurgerOrderIntent'
+import { createFallbackIntent } from '../../lex/intents/createFallbackIntent'
 import {
     createFranchiseType,
     FRANCHISE_TYPE,
-} from '../lex/slot-types/createFranchiseType'
+} from '../../lex/slot-types/createFranchiseType'
 import {
     createKindSlotType,
     KIND_TYPE,
-} from '../lex/slot-types/createKindSlotType'
+} from '../../lex/slot-types/createKindSlotType'
 import {
     createSizeSlotType,
-    SIZE_TYPE as SIZE_SLOT_TYPE_VALUES,
-} from '../lex/slot-types/createSizeSlotType'
+    SIZE_TYPE,
+} from '../../lex/slot-types/createSizeSlotType'
 
-type LexStackProps = cdk.StackProps & {
-    readonly lambdaFunction: lambda.Function
+type LexConstructProps = {
+    readonly lambdaFunction: lambda.IFunction
 }
-export class LexStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props: LexStackProps) {
-        super(scope, id, props)
+
+export class LexConstruct extends Construct {
+    public readonly lexBot: lex.CfnBot
+
+    constructor(scope: Construct, id: string, props: LexConstructProps) {
+        super(scope, id)
 
         const lexRuntimeRole = new iam.Role(this, 'LexRuntimeRole', {
             assumedBy: new iam.ServicePrincipal('lexv2.amazonaws.com'),
@@ -50,7 +53,7 @@ export class LexStack extends cdk.Stack {
         const franchiseType = createFranchiseType()
         const kindType = createKindSlotType()
 
-        const bot = new lex.CfnBot(this, 'MyLexBot', {
+        this.lexBot = new lex.CfnBot(this, 'MyLexBot', {
             name: 'MyLexBot',
             roleArn: lexRuntimeRole.roleArn,
             dataPrivacy: {
@@ -83,7 +86,7 @@ export class LexStack extends cdk.Stack {
                     intents: [
                         createBurgerOrderIntent({
                             sizeSlotTypeName: sizeSlotType.name,
-                            sizeTypes: SIZE_SLOT_TYPE_VALUES,
+                            sizeTypes: SIZE_TYPE,
                             franchiseTypes: FRANCHISE_TYPE,
                             franchiseSlotTypeName: franchiseType.name,
                             kindSlotTypeName: kindType.name,
